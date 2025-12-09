@@ -1,4 +1,4 @@
-# Friends Puzzle Game (لعبة الأصدقاء)
+# Friends Puzzle Game
 
 <div align="center">
   <!-- 
