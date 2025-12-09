@@ -7,8 +7,8 @@
     and rename them to 'screenshot1.png' and 'screenshot2.png' 
     or update the paths below.
   -->
-  <img src="assets/images/screenshot1.png" alt="Game Screenshot 1" width="45%" />
-  <img src="assets/images/screenshot2.png" alt="Game Screenshot 2" width="45%" />
+  <img src="assets/read_me/preview_image.png" alt="Game Screenshot 1" width="45%" />
+  <img src="assets/read_me/preview_image2.png" alt="Game Screenshot 2" width="45%" />
 </div>
 
 <br />
