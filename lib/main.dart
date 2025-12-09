@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'dart:ui' as ui;
+import 'dart:async';
 
 void main() {
   runApp(const FriendsPuzzleApp());
@@ -320,11 +321,22 @@ class _PuzzleGamePageState extends State<PuzzleGamePage> {
   final String fullImagePath = 'assets/images/friends_full.png';
   late List<PuzzlePiece> pieces;
   bool isGameComplete = false;
+  
+  // Feedback state
+  int? _feedbackIndex;
+  bool? _feedbackSuccess;
+  Timer? _feedbackTimer;
 
   @override
   void initState() {
     super.initState();
     _initializeGame();
+  }
+
+  @override
+  void dispose() {
+    _feedbackTimer?.cancel();
+    super.dispose();
   }
 
   void _initializeGame() {
@@ -339,6 +351,8 @@ class _PuzzleGamePageState extends State<PuzzleGamePage> {
       );
     });
     isGameComplete = false;
+    _feedbackIndex = null;
+    _feedbackSuccess = null;
     setState(() {});
   }
 
@@ -348,7 +362,26 @@ class _PuzzleGamePageState extends State<PuzzleGamePage> {
         pieces[pieceId].isPlaced = true;
         _checkWinCondition();
       });
+      _triggerFeedback(targetIndex, true);
+    } else {
+      _triggerFeedback(targetIndex, false);
     }
+  }
+
+  void _triggerFeedback(int index, bool success) {
+    _feedbackTimer?.cancel();
+    setState(() {
+      _feedbackIndex = index;
+      _feedbackSuccess = success;
+    });
+    _feedbackTimer = Timer(const Duration(seconds: 1), () {
+      if (mounted) {
+        setState(() {
+          _feedbackIndex = null;
+          _feedbackSuccess = null;
+        });
+      }
+    });
   }
 
   void _checkWinCondition() {
@@ -384,14 +417,14 @@ class _PuzzleGamePageState extends State<PuzzleGamePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('لعبة تركيب الصور'),
+        title: const Text('Puzzel Game' , style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _initializeGame,
-            tooltip: 'إعادة اللعب',
+            tooltip: 'Restart Game',
           ),
         ],
       ),
@@ -548,6 +581,43 @@ class _PuzzleGamePageState extends State<PuzzleGamePage> {
                 ),
               );
             }),
+
+            // Feedback Overlay (Rendered on top)
+            if (_feedbackIndex != null)
+              Positioned(
+                left: (_feedbackIndex! % cols) * cellSize,
+                top: (_feedbackIndex! ~/ cols) * cellSize,
+                width: cellSize,
+                height: cellSize,
+                child: IgnorePointer(
+                  child: Center(
+                    child: AnimatedScale(
+                      scale: 1.0,
+                      duration: const Duration(milliseconds: 100),
+                      curve: Curves.elasticOut,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _feedbackSuccess! ? Colors.green : Colors.red,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          _feedbackSuccess! ? Icons.check_rounded : Icons.close_rounded,
+                          size: 25,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
